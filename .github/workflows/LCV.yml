@@ -20,6 +20,8 @@ jobs:
 
   push:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     name: License Compliance Verifier
 
     steps:
