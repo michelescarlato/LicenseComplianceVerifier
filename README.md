@@ -23,9 +23,6 @@ It generates an array containing these associations and interprets in this way:
 
 The [`licenses.csv`](https://github.com/fasten-project/LCV-CM/blob/develop/csv/licenses_tests.csv) represents *True* with *1* and *False* with *0* because originally this Matrix was thought to be imported as a Postgres table, that makes use of bit data type to represent them.
 
-# Integration with FASTEN 
-
-We are currently working on the integration within the FASTEN REST APIs.
 
 # Endpoints description
 Coming soon.
