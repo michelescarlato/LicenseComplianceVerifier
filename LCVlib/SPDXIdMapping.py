@@ -10,14 +10,6 @@ from LCVlib.VerboseLicenseParsing import DetectWithAcronyms, DetectWithKeywords,
 '''
 
 
-def CSV_to_dataframe(CSVfilePath, column_names_list):
-    """
-    Import a CSV and transform it into a pandas dataframe selecting only the useful columns from the Compatibility Matrix
-    """
-    df = pd.read_csv(CSVfilePath, usecols=column_names_list)
-    return df
-
-
 def IsInAliases(single_verbose_license):
     CSVfilePath = "../../csv/spdx-id.csv"
     IsInAliases = False
@@ -36,7 +28,7 @@ def IsInAliases(single_verbose_license):
 def StaticMapping(single_verbose_license):
     CSVfilePath = "../../csv/spdx-id.csv"
     column_names_list = ['Scancode', 'SPDX-ID']
-    df = CSV_to_dataframe(CSVfilePath, column_names_list)
+    df = pd.read_csv(CSVfilePath, usecols=column_names_list)
     df = df.set_index('Scancode')
     single_verbose_license_SPDX_id = df.loc[single_verbose_license]['SPDX-ID']
     if single_verbose_license_SPDX_id is not np.nan:
@@ -92,7 +84,7 @@ def StaticMappingList(InboundLicenses_cleaned):
     CSVfilePath = "../../csv/spdx-id.csv"
     InboundLicenses_SPDX = []
     column_names_list = ['Scancode', 'SPDX-ID']
-    df = CSV_to_dataframe(CSVfilePath, column_names_list)
+    df = pd.read_csv(CSVfilePath, usecols=column_names_list)
     df = df.set_index('Scancode')
     for license in InboundLicenses_cleaned:
         newElement = df.loc[license]['SPDX-ID']
