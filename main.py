@@ -1,5 +1,5 @@
 from LCVlib.verify import retrieveOutboundLicense, CompareSPDX, CompareSPDXFlag, CompareSPDX_OSADL, Compare_OSADL, \
-    Compare_OSADLFlag, CSV_to_dataframeOSADL
+    Compare_OSADLFlag
 from LCVlib.SPDXIdMapping import ConvertToSPDX, IsAnSPDX
 from dotenv import load_dotenv
 from os import environ, path
@@ -22,9 +22,6 @@ LOGFILE = environ.get('LOGFILE')
 PORT = environ.get('PORT')
 HOST = environ.get('HOST')
 GITREPO = environ.get('GITREPO')
-SHUTDOWN = environ.get('SHUTDOWN')
-
-
 
 
 # Check the port number range
@@ -40,7 +37,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--port",
                     help='Port number to connect to',
                     dest=PORT,
-                    default=3152,
+                    default=3251,
                     type=int,
                     action=PortAction,
                     metavar="{0..65535}")
@@ -49,18 +46,12 @@ parser.add_argument("-P", "--PATH",
                     dest='PATH',
                     # default=environ.get('PYTHONHOME'),
                     type=str)
-parser.add_argument("-s", "--shutdown",
-                    help='shutdown timer express in seconds',
-                    dest='shutdown',
-                    # default="SHUTDOWN",
-                    type=str)
 args = parser.parse_args()
 if args.port:
     PORT = args.port
 if args.PATH:
     PATH = args.PATH
-if args.shutdown:
-    SHUTDOWN = args.shutdown
+
 os.environ['PATH'] = PATH
 
 app = flask.Flask(__name__)
@@ -71,50 +62,24 @@ app.config["DEBUG"] = True
 
 
 @app.route('/APIEndpoints')
-def APIEndpoints():
+def api_endpoints():
     return render_template('APIEndpoints.html')
 
 
-@app.route('/GitHubOutboundLicense')
-def Outb():
-    return render_template('outbound.html')
-
-
-@app.route('/GitHubOutboundLicenseOutput', methods=['POST', 'GET'])
-def GitHubOutboundLicense():
-    if request.method == 'POST':
-        url = request.form['url']
-        OutboundLicense = retrieveOutboundLicense(url)
-        return OutboundLicense
-
-
 @app.route('/CompatibilitySPDX')
-def CompatibilitySPDX():
+def compatibility_spdx():  # this endpoint is a html interface where list of
+    # licenses can be checked against the outbound license
     return render_template('compatibilitySPDX.html')
 
 
 @app.route('/CompatibilitySPDXOutput', methods=['POST', 'GET'])
-def ComplianceSPDX():
+def compliance_spdx():  # this endpoint is coupled with the compatibility_spdx endpoint,
+    # and provides the verification's output.
     if request.method == 'POST':
         InboundLicenses = request.form['inboundLicenses']
         InboundLicenses = InboundLicenses.split(",")
         OutboundLicense = request.form['outboundLicense']
         verificationList = CompareSPDX(InboundLicenses, OutboundLicense)
-        return jsonify(verificationList)
-
-
-@app.route('/CompatibilitySPDX_OSADL')
-def CompatibilitySPDX_OSADL():
-    return render_template('compatibilitySPDX_OSADL.html')
-
-
-@app.route('/CompatibilitySPDX_OSADLOutput', methods=['POST', 'GET'])
-def ComplianceSPDX_OSADL():
-    if request.method == 'POST':
-        InboundLicenses = request.form['inboundLicenses']
-        InboundLicenses = InboundLicenses.split(",")
-        OutboundLicense = request.form['outboundLicense']
-        verificationList = CompareSPDX_OSADL(InboundLicenses, OutboundLicense)
         return jsonify(verificationList)
 
 
