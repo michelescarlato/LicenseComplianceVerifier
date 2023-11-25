@@ -20,7 +20,7 @@ load_dotenv(path.join(basedir, '.env'))
 PATH = environ.get('PATH')
 LOGFILE = environ.get('LOGFILE')
 PORT = environ.get('PORT')
-HOST = environ.get('HOST')
+HOST = '0.0.0.0' #environ.get('HOST')
 GITREPO = environ.get('GITREPO')
 
 
