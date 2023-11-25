@@ -10,6 +10,7 @@ from LCVlib.VerboseLicenseParsing import DetectWithAcronyms, DetectWithKeywords,
 '''
 
 
+# get column_names_list from somewhere... and understanding why I am using it
 def supported_licenses_(CSVfilePath):
     df = pd.read_csv(CSVfilePath, usecols=column_names_list)
     supported_licenses_OSADL = list(df.index)

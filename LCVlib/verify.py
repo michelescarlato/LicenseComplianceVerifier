@@ -1,12 +1,7 @@
-#!/usr/bin/python
-# import urllib.request
 import requests
-import json
-import time
-import sys
 import pandas as pd
-import numpy as np
 from LCVlib.SPDXIdMapping import StaticMapping, DynamicMapping, ConvertToSPDX, IsAnSPDX
+
 
 '''
 * SPDX-FileCopyrightText: 2021 Michele Scarlato <michele.scarlato@endocode.com>
@@ -14,50 +9,38 @@ from LCVlib.SPDXIdMapping import StaticMapping, DynamicMapping, ConvertToSPDX, I
 * SPDX-License-Identifier: MIT
 '''
 
-def CSV_to_dataframe(CSVfilePath, column_names_list):
+
+# get the list of Matrix supported licenses
+df = pd.read_csv('csv/OSADL.csv', index_col=0)  # verify.py is tight to the main.py execution -
+# the csv path is relative to where the main.py is.
+supported_licenses_OSADL = list(df.index)  # create a list of licenses presents in the OSADL matrix
+
+
+def csv_to_dataframe(csv_file_path, column_names_list):
     """
     Import a CSV and transform it into a pandas dataframe selecting only the useful columns from the Compatibility Matrix
     """
-    df = pd.read_csv(CSVfilePath, usecols=column_names_list)
-    return df
+    dataframe = pd.read_csv(csv_file_path, usecols=column_names_list)
+    return dataframe
 
 
-def CSV_to_dataframeOSADL(CSVfilePath):
-    """
-    Import a CSV and transform it into a pandas dataframe avoiding to add row numbers.
-    """
-    df = pd.read_csv(CSVfilePath, index_col=0)
-    '''
-    # With this method we can create the transpose of OSADL Matrix, but require to add "License" keyword at the top of the Matrix
-    df = df.transpose()
-    df.to_csv(r'/home/michelescarlato/gitrepo/LCV-CM-Fasten/LCV-CM/csv/OSADL_transposed.csv',
-              index=True, header=True)
-              '''
-    return df
-
-# create a list of licenses presents in the OSADL matrix
-
-
-# create a list of licenses presents in our original matrix
-
-def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundLicense, InboundLicenses, OutboundLicenseAlias):
-    #removes leading and trailing spaces introduced with the OR operator
-    InboundLicenses = [x.strip(' ') for x in InboundLicenses]
+def verify_osadl_transposed_maven(CSVfilePath, InboundLicenses_cleaned, OutboundLicense, InboundLicenses, OutboundLicenseAlias):
+    InboundLicenses = [x.strip(' ') for x in InboundLicenses] #  removes leading and trailing spaces introduced with the OR operator
     print(InboundLicenses)
     verificationList = list()
-    keys = ["message","status","inbound","outbound","inbound_SPDX","outbound_SPDX"]
-    #keysNotPresent = ["message","status","license"]
+    keys = ["message", "status", "inbound", "outbound", "inbound_SPDX", "outbound_SPDX"]
+    # keysNotPresent = ["message","status","license"]
     dictOutput = dict.fromkeys(keys, None)
-    #dictOutputNotPresent = dict.fromkeys(keysNotPresent, None)
+    # dictOutputNotPresent = dict.fromkeys(keysNotPresent, None)
 
     print(InboundLicenses_cleaned)
     print(OutboundLicense)
-    if (OutboundLicense in supported_licenses_OSADL):
+    if OutboundLicense in supported_licenses_OSADL:
         column_names_list = [OutboundLicense]
         column_names_list.insert(0, 'License')
         # retrieve data from CSV file
-        CSVfilePath = "../../csv/OSADL_transposed.csv"
-        df = CSV_to_dataframe(CSVfilePath, column_names_list)
+        csv_file_path = "../../csv/OSADL_transposed.csv"
+        df = pd.read_csv(csv_file_path, usecols=column_names_list)
         df = df.set_index('License')
         if (len(InboundLicenses_cleaned) == 1) and (InboundLicenses_cleaned[0] == OutboundLicense):
             output = "For this project only " + \
@@ -71,7 +54,7 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
             if (license in supported_licenses_OSADL):
                 comparison = df.loc[license, OutboundLicense]
                 if comparison == "No":
-                    output =str(InboundLicenses[index])+" is not compatible with " + \
+                    output = str(InboundLicenses[index])+" is not compatible with " + \
                         OutboundLicenseAlias+" as an outbound license."
                     dictOutput['message'] = output
                     dictOutput['status'] = "not compatible"
@@ -81,10 +64,10 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
                     dictOutput['outbound'] = OutboundLicenseAlias
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
-                    index +=1
+                    index += 1
 
                 if comparison == "Yes":
-                    output =str(InboundLicenses[index])+" is compatible with " + \
+                    output = str(InboundLicenses[index])+" is compatible with " + \
                         OutboundLicenseAlias + " as an outbound license."
                     dictOutput['message'] = output
                     dictOutput['status'] = "compatible"
@@ -94,10 +77,10 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
                     dictOutput['outbound'] = OutboundLicenseAlias
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
-                    index +=1
+                    index += 1
                 # OSADL Matrix could be shipped with empty field, resulting in nan.
                 if comparison == "-":
-                    output =str(InboundLicenses[index])+" is compatible with " + \
+                    output = str(InboundLicenses[index])+" is compatible with " + \
                         OutboundLicenseAlias + " as an outbound license."
                     dictOutput['message'] = output
                     dictOutput['status'] = "compatible"
@@ -107,7 +90,7 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
                     dictOutput['outbound'] = OutboundLicenseAlias
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
-                    index +=1
+                    index += 1
                 if comparison == "?":
                     output = "There is insufficient information or knowledge whether the "+str(InboundLicenses[index])+" as inbound license" + \
                         " is compatible with the " + OutboundLicenseAlias + " as outbound license. Therefore a general recommendation" + \
@@ -121,7 +104,7 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
                     dictOutput['outbound'] = OutboundLicenseAlias
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
-                    index +=1
+                    index += 1
                 if comparison == "Dep.":
                     output = "Depending compatibility of the "+str(InboundLicenses[index])+" with the " + \
                         OutboundLicenseAlias + " license is explicitly stated in the " + \
@@ -134,7 +117,7 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
                     dictOutput['outbound'] = OutboundLicenseAlias
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
-                    index +=1
+                    index += 1
             else:
                 output = "The inbound license "+str(InboundLicenses[index])+" is not present in the Compatibility Matrix"
                 dictOutput['message'] = output
@@ -146,7 +129,7 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
                 dictOutput['outbound'] = OutboundLicenseAlias
                 verificationList.append(dictOutput)
                 dictOutput = dict.fromkeys(keys, None)
-                index +=1
+                index += 1
                 #verificationList.append(output)
     else:
         index = 0
@@ -183,108 +166,109 @@ def verifyOSADL_Transposed_Maven(CSVfilePath, InboundLicenses_cleaned, OutboundL
     return verificationList
 
 
-def verifyOSADL_Transposed(CSVfilePath, InboundLicenses_cleaned, OutboundLicense):
+def verifyOSADL_Transposed(InboundLicenses_cleaned, OutboundLicense):
     verificationList = list()
-    keys = ["message","status","inbound","outbound"]
-    keysNotPresent = ["message","status","license"]
+    keys = ["message", "status", "inbound", "outbound"]
     dictOutput = dict.fromkeys(keys, None)
-    dictOutputNotPresent = dict.fromkeys(keysNotPresent, None)
-
-    print(InboundLicenses_cleaned)
-    print(OutboundLicense)
-    if (OutboundLicense in supported_licenses_OSADL):
-        column_names_list = [OutboundLicense]
-        column_names_list.insert(0, 'License')
-        # retrieve data from CSV file
-        CSVfilePath = "../../csv/OSADL_transposed.csv"
-        df = CSV_to_dataframe(CSVfilePath, column_names_list)
+    # keysNotPresent = ["message", "status", "license"]
+    # dictOutputNotPresent = dict.fromkeys(keysNotPresent, None)
+    # print(InboundLicenses_cleaned)
+    # print(OutboundLicense)
+    if OutboundLicense in supported_licenses_OSADL:
+        column_names_list = [OutboundLicense]  # selecting the outbound license column
+        column_names_list.insert(0, 'License')  # adding the term license at the 0,0 matrix point
+        csv_file_path = "csv/OSADL_transposed.csv"  # using the transposed matrix becuase OSADL fromat is reverse:
+        # inbounds are in the columns and outbound in the rows.
+        df = csv_to_dataframe(csv_file_path, column_names_list)  # get the first column, with the license names,
+        # and the column with the outbound license.
+        dataframe = pd.read_csv(csv_file_path, usecols=column_names_list)
         df = df.set_index('License')
-        if (len(InboundLicenses_cleaned) == 1) and (InboundLicenses_cleaned[0] == OutboundLicense):
-            output = "For this project only " + \
-                InboundLicenses_cleaned[0] + \
-                " as the inbound license has been detected, and it is the same of the outbound license (" + \
-                OutboundLicense+"), implying that it is compatible. \nIt means that it is license compliant. "
+        if len(InboundLicenses_cleaned) == 1 and InboundLicenses_cleaned[0] == OutboundLicense:  # check if:
+            # there is only 1 inbound license, and if it is the same as the outbound one.
+            output = (f'For this project, only {InboundLicenses_cleaned[0]} as the inbound license has been detected, '
+                      f'and it is the same of the outbound license ({OutboundLicense}), '
+                      f'implying that it is compatible. It means that it is license compliant. ')
             verificationList.append(output)
             return verificationList
-        for license in InboundLicenses_cleaned:
-            if (license in supported_licenses_OSADL):
-                comparison = df.loc[license, OutboundLicense]
+        for inbound_license in InboundLicenses_cleaned:
+            if inbound_license in supported_licenses_OSADL:
+                comparison = df.loc[inbound_license, OutboundLicense]
                 if comparison == "No":
-                    output =license+" is not compatible with " + \
+                    output = inbound_license+" is not compatible with " + \
                         OutboundLicense+" as an outbound license."
                     dictOutput['message'] = output
                     dictOutput['status'] = "not compatible"
-                    dictOutput['inbound'] = license
+                    dictOutput['inbound'] = inbound_license
                     dictOutput['outbound'] = OutboundLicense
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
 
                 if comparison == "Yes":
-                    output =license+" is compatible with " + \
+                    output = inbound_license +" is compatible with " + \
                         OutboundLicense + " as an outbound license."
                     dictOutput['message'] = output
                     dictOutput['status'] = "compatible"
-                    dictOutput['inbound'] = license
+                    dictOutput['inbound'] = inbound_license
                     dictOutput['outbound'] = OutboundLicense
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
                 # OSADL Matrix could be shipped with empty field, resulting in nan.
                 if comparison == "-":
-                    output =license+" is compatible with " + \
+                    output =inbound_license+" is compatible with " + \
                         OutboundLicense + " as an outbound license."
                     dictOutput['message'] = output
                     dictOutput['status'] = "compatible"
-                    dictOutput['inbound'] = license
+                    dictOutput['inbound'] = inbound_license
                     dictOutput['outbound'] = OutboundLicense
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
                 if comparison == "?":
-                    output = "There is insufficient information or knowledge whether the "+license+" as inbound license" + \
+                    output = "There is insufficient information or knowledge whether the "+inbound_license+" as inbound license" + \
                         " is compatible with the " + OutboundLicense + " as outbound license. Therefore a general recommendation" + \
-                        " on the compatibility of "+license+" as inbound with the " + \
+                        " on the compatibility of "+inbound_license+" as inbound with the " + \
                         OutboundLicense+" as outbound cannot be given."
                     dictOutput['message'] = output
                     dictOutput['status'] = "insufficient information"
-                    dictOutput['inbound'] = license
+                    dictOutput['inbound'] = inbound_license
                     dictOutput['outbound'] = OutboundLicense
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
                 if comparison == "Dep.":
-                    output = "Depending compatibility of the "+license+" with the " + \
+                    output = "Depending compatibility of the "+inbound_license+" with the " + \
                         OutboundLicense + " license is explicitly stated in the " + \
                         OutboundLicense+" license checklist hosted by OSADL.org"
                     dictOutput['message'] = output
                     dictOutput['status'] = "Depending on the use case"
-                    dictOutput['inbound'] = license
+                    dictOutput['inbound'] = inbound_license
                     dictOutput['outbound'] = OutboundLicense
                     verificationList.append(dictOutput)
                     dictOutput = dict.fromkeys(keys, None)
             else:
-                output = "The inbound license "+license+" is not present in the Compatibility Matrix"
+                output = "The inbound license "+inbound_license+" is not present in the Compatibility Matrix"
                 dictOutput['message'] = output
                 dictOutput['status'] = "unknown"
-                dictOutput['inbound'] = license
+                dictOutput['inbound'] = inbound_license
                 dictOutput['outbound'] = OutboundLicense
                 verificationList.append(dictOutput)
                 dictOutput = dict.fromkeys(keys, None)
                 #verificationList.append(output)
     else:
-        for license in InboundLicenses_cleaned:
-            if (license in supported_licenses_OSADL):
+        for inbound_license in InboundLicenses_cleaned:
+            if (inbound_license in supported_licenses_OSADL):
                 output = "The outbound license "+OutboundLicense+" is not present in the Compatibility Matrix, while the inbound "+license+" is present."
                 dictOutput['message'] = output
                 dictOutput['status'] = "unknown"
-                dictOutput['inbound'] = license
+                dictOutput['inbound'] = inbound_license
                 dictOutput['outbound'] = OutboundLicense
                 #dictOutputNotPresent['outbound'] = OutboundLicense
                 verificationList.append(dictOutput)
                 dictOutput = dict.fromkeys(keys, None)
                 #verificationList.append(output)
             else:
-                output = "The outbound license "+OutboundLicense+" and the inbound "+license+" are not present in the Compatibility Matrix"
+                output = "The outbound license "+OutboundLicense+" and the inbound "+inbound_license+" are not present in the Compatibility Matrix"
                 dictOutput['message'] = output
                 dictOutput['status'] = "unknown"
-                dictOutput['inbound'] = license
+                dictOutput['inbound'] = inbound_license
                 dictOutput['outbound'] = OutboundLicense
                 #dictOutputNotPresent['outbound'] = OutboundLicense
                 verificationList.append(dictOutput)
@@ -301,7 +285,7 @@ def verifyFlag(CSVfilePath, InboundLicenses_cleaned, OutboundLicense):
         column_names_list = [OutboundLicense]
         column_names_list.insert(0, 'License')
         # retrieve data from CSV file
-        df = CSV_to_dataframe(CSVfilePath, column_names_list)
+        df = csv_to_dataframe(CSVfilePath, column_names_list)
         df = df.set_index('License')
         if (len(InboundLicenses_cleaned) == 1) and (InboundLicenses_cleaned[0] == OutboundLicense):
             verificationFlag = True
@@ -372,9 +356,8 @@ def CompareSPDX(InboundLicenses_SPDX, OutboundLicense):
     print("Running the license compliance verification:")
     print("Inbound license list :\n"+str(InboundLicenses_SPDX))
     print("The outbound license is: "+OutboundLicense)
-    CSVfilePath = "../../csv/licenses_tests.csv"
     verificationList = verifyOSADL_Transposed(
-        CSVfilePath, InboundLicenses_SPDX, OutboundLicense)
+        InboundLicenses_SPDX, OutboundLicense)
     verificationList = parseVerificationList(verificationList)
     return verificationList
 
@@ -401,18 +384,16 @@ def CompareSPDX_OSADL(InboundLicenses_SPDX, OutboundLicense):
 
 def Compare_OSADL(InboundLicenses, OutboundLicense):
     print(InboundLicenses)
-    InboundLicenses_SPDX=[]
-    for license in InboundLicenses:
-        IsSPDX= IsAnSPDX(license)
-        print("Is "+license+" an SPDX?")
+    InboundLicenses_SPDX = []
+    for inbound_license in InboundLicenses:
+        IsSPDX = IsAnSPDX(inbound_license)
+        print(f'Is {inbound_license} an SPDX?')
         print(IsSPDX)
         if not IsSPDX:
-            license_spdx = ConvertToSPDX(license)
-            print("dentro for ")
-            print(license_spdx)
+            license_spdx = ConvertToSPDX(inbound_license)
             InboundLicenses_SPDX.append(license_spdx)
         else:
-            InboundLicenses_SPDX.append(license)
+            InboundLicenses_SPDX.append(inbound_license)
     print("InboundLicenses_SPDX:")
     print(InboundLicenses_SPDX)
     IsSPDX=IsAnSPDX(OutboundLicense)
@@ -435,10 +416,9 @@ def Compare_OSADL(InboundLicenses, OutboundLicense):
     print("Running the license compliance verification:")
     print("Inbound license list :\n"+str(InboundLicenses_SPDX))
     print("The outbound license is: "+OutboundLicense_SPDX)
-    #CSVfilePath = "../../csv/licenses_tests.csv"
-    CSVfilePath = "../../csv/OSADL_transposed.csv"
-    verificationList = verifyOSADL_Transposed_Maven(
-        CSVfilePath, InboundLicenses_SPDX, OutboundLicense_SPDX, InboundLicenses, OutboundLicense)
+    csv_file_path = "../../csv/OSADL_transposed.csv"
+    verificationList = verify_osadl_transposed_maven(
+        csv_file_path, InboundLicenses_SPDX, OutboundLicense_SPDX, InboundLicenses, OutboundLicense)
     verificationList = parseVerificationList(verificationList)
     return verificationList
 
@@ -542,8 +522,10 @@ def parseVerificationList(verificationList):
 
         # if all element are compatible, license compliance occurs.
         indexLicense = 0
+
         for element in verificationList:
-            if Compatible in element:
+            if element['status'] == 'compatible':
+                print('compatible in element')
                 indexLicense += 1
         print(str(indexLicense)+" above "+str(len(verificationList))
               + " licenses found are compatible.")
