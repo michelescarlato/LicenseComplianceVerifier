@@ -14,7 +14,7 @@ on:
       - maven-use-case
 
 env:
-  IMAGE_NAME: lcv.restapi
+  IMAGE_NAME: lcvrestapi
 
 
 jobs:
