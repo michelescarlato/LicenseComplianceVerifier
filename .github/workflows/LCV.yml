@@ -4,7 +4,7 @@ on:
   push:
     # Publish `lcv-restapi` as Docker `latest` image.
     branches:
-      - maven-use-case
+      - lcv-refactoring
 
     # Publish `v1.2.3` tags as releases.
     tags:
