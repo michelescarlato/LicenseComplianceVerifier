@@ -1,0 +1,14 @@
+name: LCV image building and tests with Postman
+
+on: [push]
+
+jobs:
+  lcv_tests_postman:
+    runs-on: ubuntu-latest
+    name: LCV API with Postman tests (using Newman)
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: LCVServer API with Newman test
+      id: apitest
+      uses: ./
