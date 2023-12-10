@@ -11,7 +11,7 @@ from LCVlib.VerboseLicenseParsing import DetectWithAcronyms, DetectWithKeywords,
 
 
 def IsInAliases(single_verbose_license):
-    CSVfilePath = "../../csv/spdx-id.csv"
+    CSVfilePath = "csv/spdx-id.csv"
     IsInAliases = False
     with open(CSVfilePath, 'rt') as f:
         reader = csv.reader(f, delimiter=',')
@@ -26,7 +26,7 @@ def IsInAliases(single_verbose_license):
 
 
 def StaticMapping(single_verbose_license):
-    CSVfilePath = "../../csv/spdx-id.csv"
+    CSVfilePath = "csv/spdx-id.csv"
     column_names_list = ['Scancode', 'SPDX-ID']
     df = pd.read_csv(CSVfilePath, usecols=column_names_list)
     df = df.set_index('Scancode')
@@ -39,7 +39,7 @@ def StaticMapping(single_verbose_license):
 
 def IsAnSPDX(license_name):
     IsSPDX = False
-    with open('../../csv/SPDX_license_name.csv', 'rt') as f:
+    with open('csv/SPDX_license_name.csv', 'rt') as f:
         reader = csv.reader(f)
         for row in reader:
             for field in row:
