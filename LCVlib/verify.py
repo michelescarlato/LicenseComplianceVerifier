@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-from LCVlib.SPDXIdMapping import StaticMapping, DynamicMapping, ConvertToSPDX, IsAnSPDX
+from LCVlib.SPDXIdMapping import ConvertToSPDX, IsAnSPDX
 
 
 '''
@@ -292,7 +292,7 @@ def CompareSPDX(InboundLicenses_SPDX, OutboundLicense):
     print("The outbound license is: "+OutboundLicense)
     verificationList = verifyOSADL_Transposed(
         InboundLicenses_SPDX, OutboundLicense)
-    verificationList = parseVerificationList(verificationList)
+    verificationList = parse_verification_list(verificationList)
     return verificationList
 
 
@@ -312,7 +312,7 @@ def CompareSPDX_OSADL(InboundLicenses_SPDX, OutboundLicense):
     CSVfilePath = "../../csv/OSADL_transposed.csv"
     verificationList = verifyOSADL_Transposed(
         CSVfilePath, InboundLicenses_SPDX, OutboundLicense)
-    verificationList = parseVerificationList(verificationList)
+    verificationList = parse_verification_list(verificationList)
     return verificationList
 
 
@@ -353,7 +353,7 @@ def Compare_OSADL(InboundLicenses, OutboundLicense):
     csv_file_path = "../../csv/OSADL_transposed.csv"
     verificationList = verify_osadl_transposed_maven(
         csv_file_path, InboundLicenses_SPDX, OutboundLicense_SPDX, InboundLicenses, OutboundLicense)
-    verificationList = parseVerificationList(verificationList)
+    verificationList = parse_verification_list(verificationList)
     return verificationList
 
 
@@ -423,50 +423,24 @@ def Compare_OSADLFlag(InboundLicenses, OutboundLicense):
     return verificationFlag
 
 
-def parseVerificationList(verificationList):
-    notCompatible = "is not compatible"
-    Compatible = "is compatible"
-    isNotSupported = "is not supported"
-    TBD = "compatibility with"
-    UNK = "UNKNOWN"
-    II = "II"
-    DEP = "DEP"
-    DUC = "DUC"
+def parse_verification_list(verification_list: dict):
+    """
+    Print at screen info useful for debugging.
 
-    for element in verificationList:
-        if notCompatible in element:
-            print("YOUR PACKAGE IS NOT COMPLIANT because:\n"+element)
-        if Compatible in element:
-            print(
-                "\n"+element+"\nThis allow you to use this inbound license in your package.\n")
-        if isNotSupported in element:
-            print("\n"+element
-                  + "\nMomentairly 'or later' notation are not supported.\n")
-        if TBD in element:
-            print(
-                "\n"+element+"\nThis compatibility association still need to be defined.\n")
-        if UNK in element:
-            print("\n"+element)
-        if II in element:
-            print("\n"+element+"\nThere is insufficient information or knowledge upon this compatibility. OSADL Matrix is not able to compare them.\n")
-        if DEP in element:
-            print("\n"+element+"\nDepending compatibility is explicitly stated in the license checklist hosted by OSADL.org")
-        if DUC in element:
-            print("\n"+element+"\nDepending on the use case.")
-
-        # if all element are compatible, license compliance occurs.
-        indexLicense = 0
-
-        for element in verificationList:
-            print("Element:")
-            print(element)
-            if element['status'] == 'compatible':
-                print('compatible in element')
-                indexLicense += 1
-        print(str(indexLicense)+" above "+str(len(verificationList))
-              + " licenses found are compatible.")
-        if indexLicense == len(verificationList):
-            print("Hence your project is compatible.")
-        else:
-            print("Hence your project is not compatible.")
-        return verificationList
+    :param verification_list:
+    :return:
+    """
+    indexLicense = 0
+    for element in verification_list:
+        print("Element:")
+        print(element)
+        if element['status'] == 'compatible':
+            print('compatible in element')
+            indexLicense += 1
+    print(str(indexLicense)+" above "+str(len(verification_list))
+          + " licenses found are compatible.")
+    if indexLicense == len(verification_list):
+        print("Hence your project is compatible.")
+    else:
+        print("Hence your project is not compatible.")
+    return verification_list
