@@ -20,7 +20,7 @@ load_dotenv(path.join(basedir, '.env'))
 PATH = environ.get('PATH')
 LOGFILE = environ.get('LOGFILE')
 PORT = environ.get('PORT')
-HOST = '0.0.0.0' #environ.get('HOST')
+HOST = '0.0.0.0'  # environ.get('HOST')
 GITREPO = environ.get('GITREPO')
 
 
@@ -53,7 +53,6 @@ if args.PATH:
     PATH = args.PATH
 
 os.environ['PATH'] = PATH
-
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
@@ -72,6 +71,12 @@ def compatibility_spdx():  # this endpoint is a html interface where list of
     return render_template('compatibilitySPDX.html')
 
 
+@app.route('/IsAnSPDXHTML')
+def is_an_spdx_html():  # this endpoint is a html interface where list of
+    # licenses can be checked against the outbound license
+    return render_template('IsAnSPDX.html')
+
+
 @app.route('/CompatibilitySPDXOutput', methods=['POST', 'GET'])
 def compliance_spdx():  # this endpoint is coupled with the compatibility_spdx endpoint,
     # and provides the verification's output.
@@ -81,22 +86,6 @@ def compliance_spdx():  # this endpoint is coupled with the compatibility_spdx e
         OutboundLicense = request.form['outboundLicense']
         verificationList = CompareSPDX(InboundLicenses, OutboundLicense)
         return jsonify(verificationList)
-
-
-@app.route('/CompatibilitySPDXFlag')
-def CompatibilitySPDXFlag():
-    return render_template('compatibilitySPDXFlag.html')
-
-
-@app.route('/CompatibilitySPDXFlagOutput', methods=['POST', 'GET'])
-def ComplianceSPDXFlag():
-    if request.method == 'POST':
-        InboundLicenses = request.form['inboundLicenses']
-        InboundLicenses = InboundLicenses.split(",")
-        OutboundLicense = request.form['outboundLicense']
-        verificationFlag = CompareSPDXFlag(InboundLicenses, OutboundLicense)
-        # print(verificationList)
-        return jsonify(verificationFlag)
 
 
 @app.route('/GetGitHubOutboundLicense', methods=['POST', 'GET'])
@@ -143,17 +132,6 @@ def LicensesInput():
     return jsonify(verificationList)
 
 
-@app.route('/LicensesInputFlag', methods=['POST', 'GET'])
-def licenses_input_flag():
-    args = request.args
-    print(args)  # For debugging
-    InboundLicenses = args['InboundLicenses']
-    InboundLicenses = InboundLicenses.split(";")
-    OutboundLicense = args['OutboundLicense']
-    verificationList = Compare_OSADLFlag(InboundLicenses, OutboundLicense)
-    return jsonify(verificationList)
-
-
 @app.route('/ConvertToSPDX', methods=['POST', 'GET'])
 def ConvertToSPDXEndpoint():
     args = request.args
@@ -174,23 +152,24 @@ def IsAnSPDXEndpoint():
     return jsonify(Bool)
 
 
-@app.route('/LicensesInputSPDXFlag', methods=['GET', 'POST'])
-# @app.route('/LicensesInput', methods=['POST'])
-def LicensesInputSPDXFlag():
-    args = request.args
-    InboundLicenses = args['InboundLicenses']
-    InboundLicenses = InboundLicenses.split(",")
-    OutboundLicense = args['OutboundLicense']
-    verificationFlag = CompareSPDXFlag(InboundLicenses, OutboundLicense)
-    return jsonify(verificationFlag)
+@app.route('/IsAnSPDXTest', methods=['POST', 'GET'])
+def IsAnSPDXEndpointTest():
+    if request.method == 'POST':
+        spdx_id = request.form['SPDXid']
+        #args = request.args
+        #print(args)  # For debugging
+        #SPDXid = args['SPDXid']
+        print(spdx_id)
+        Bool = IsAnSPDX(spdx_id)
+        if Bool is None:
+            Bool = False
+    return jsonify(Bool)
 
 
 @app.route('/PATH', methods=['GET'])
 def path():
     CurrentPath = os.getenv("PATH")
     return str(CurrentPath)
-
-
 
 
 app.run(host=HOST, port=PORT)
