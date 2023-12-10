@@ -10,5 +10,5 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: LCVServer API with Newman test
-      id: apitest
+      id: hello
       uses: ./
