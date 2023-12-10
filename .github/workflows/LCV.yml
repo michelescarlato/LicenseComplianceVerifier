@@ -20,6 +20,7 @@ env:
 jobs:
 
   push:
+    permissions: write-all
     runs-on: ubuntu-latest
     name: LCV REST APIs for Open Source licensing compliance
 
