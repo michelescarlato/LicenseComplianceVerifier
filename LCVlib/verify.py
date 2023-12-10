@@ -137,10 +137,6 @@ def verifyOSADL_Transposed(InboundLicenses_cleaned, OutboundLicense):
     verificationList = list()
     keys = ["message", "status", "inbound", "outbound"]
     dictOutput = dict.fromkeys(keys, None)
-    # keysNotPresent = ["message", "status", "license"]
-    # dictOutputNotPresent = dict.fromkeys(keysNotPresent, None)
-    # print(InboundLicenses_cleaned)
-    # print(OutboundLicense)
     if OutboundLicense in supported_licenses_OSADL:
         column_names_list = [OutboundLicense]  # selecting the outbound license column
         column_names_list.insert(0, 'License')  # adding the term license at the 0,0 matrix point
@@ -155,7 +151,11 @@ def verifyOSADL_Transposed(InboundLicenses_cleaned, OutboundLicense):
             output = (f'For this project, only {InboundLicenses_cleaned[0]} as the inbound license has been detected, '
                       f'and it is the same of the outbound license ({OutboundLicense}), '
                       f'implying that it is compatible. It means that it is license compliant. ')
-            verificationList.append(output)
+            dictOutput['message'] = output
+            dictOutput['status'] = "compatible"
+            dictOutput['inbound'] = InboundLicenses_cleaned[0]
+            dictOutput['outbound'] = OutboundLicense
+            verificationList.append(dictOutput)
             return verificationList
         for inbound_license in InboundLicenses_cleaned:
             if inbound_license in supported_licenses_OSADL:
