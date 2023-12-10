@@ -3,3 +3,5 @@
 *__pycache__/*
 *.pyc
 *.pyo
+steps_to_deploy_on_k8s.txt
+things to fix.odt
