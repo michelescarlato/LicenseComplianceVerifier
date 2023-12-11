@@ -28,7 +28,7 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
     - name: Build image
-      run:  docker build -t lcvrestapi -f Dockerfile .
+      run:  docker build -t lcvrestapi -f DockerfileBuildAndPush .
     - name: Log into registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Push image
