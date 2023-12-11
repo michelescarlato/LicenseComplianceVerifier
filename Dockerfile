@@ -1,4 +1,5 @@
-FROM ubuntu:focal-20201106
+#FROM ubuntu:focal-20201106
+FROM ubuntu:jammy-20231128
 RUN DEBIAN_FRONTEND=noninteractive apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip python-dev libpq-dev git curl npm nodejs
 RUN npm install -g newman
 COPY . "/LCV-CM"
