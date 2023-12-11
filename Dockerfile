@@ -5,5 +5,6 @@ COPY . "/LCV-CM"
 WORKDIR "/LCV-CM"
 RUN pip3 install -r requirements.txt
 EXPOSE 3251
+RUN chmod +x entrypoint.sh
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
