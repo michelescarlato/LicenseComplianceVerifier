@@ -156,9 +156,6 @@ def IsAnSPDXEndpoint():
 def IsAnSPDXEndpointTest():
     if request.method == 'POST':
         spdx_id = request.form['SPDXid']
-        #args = request.args
-        #print(args)  # For debugging
-        #SPDXid = args['SPDXid']
         print(spdx_id)
         Bool = IsAnSPDX(spdx_id)
         if Bool is None:
